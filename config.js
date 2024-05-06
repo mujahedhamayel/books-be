@@ -1,0 +1,6 @@
+
+
+exports.NotificationProviderConfig = {
+    'email': '',
+    'password': ''
+}
