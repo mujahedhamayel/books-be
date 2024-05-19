@@ -1,8 +1,8 @@
 'use strict';
 
-const mongoose = require('mongoose'),
-    bcrypt = require('bcrypt'),
-    Schema = mongoose.Schema;
+const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
+const Schema = mongoose.Schema;
 
 /**
  * User Schema
@@ -33,11 +33,25 @@ const UserSchema = new Schema({
     created: {
         type: Date,
         default: Date.now
-    }
+    },
+    books: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Book',
+    }],
+    likedBooks: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Book',
+    }],
+    requests: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Book',
+    }],
+    followedUsers: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+    }]
 });
 
 const User = mongoose.model('User', UserSchema);
 
 module.exports = User;
-
-

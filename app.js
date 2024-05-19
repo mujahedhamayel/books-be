@@ -14,7 +14,9 @@ mongoose.connect('mongodb://localhost:27017/read_share', {
 .catch(err => console.error(err));
 
 //include all DB models
-require('./models/User.js')
+require('./models/Post')
+require('./models/User')
+require('./models/Book')
 
 const app = express();
 
@@ -22,9 +24,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
 const userRouter = require('./routes/userRoutes');
+const postRouter = require('./routes/postsRoute');
+const bookRouter = require('./routes/booksRoute');
 
 // all Routes here
 app.use('/api/users', userRouter);
+app.use('/api/posts', postRouter);
+app.use('/api/books', bookRouter);
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT} .....`);

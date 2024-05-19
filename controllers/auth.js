@@ -55,13 +55,41 @@ exports.login = async (req, res) => {
   }
 };
 
-exports.getUserProfile = (req, res) => {
-  console.log("getUserProfile")
-  return res.status(200).send({
-    user: req.user
-  });
+exports.getUserProfile = async (req, res) => {
+  try {
+      const user = await User.findById(req.user._id)
+          .populate('books') // Populate the books field
+          .populate('likedBooks') // Populate the likedBooks field
+          .populate('requests') // Populate the requests field
+          .populate('followedUsers', 'name email'); // Populate the followedUsers field
+      if (!user) {
+          return res.status(404).send({
+              message: 'User not found'
+          });
+      }
+      return res.status(200).send({
+          user: {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              birthday: user.birthday,
+              books: user.books,
+              likedBooks: user.likedBooks,
+              requests: user.requests,
+              followedUsers: user.followedUsers
+          }
+      });
+  } catch (error) {
+      console.error("getUserProfile error: ", error);
+      return res.status(500).send({
+          message: 'Server error',
+          error: error.message
+      });
+  }
 };
 
 exports.logout = (req, res) => {
-
+  //res.redirect('/login/login');
+  req.session.destroy();
+  res.send(" logout done ");
 };
