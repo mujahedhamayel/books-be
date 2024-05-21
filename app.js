@@ -6,7 +6,7 @@ require('dotenv').config();
 
 const PORT = process.env.PORT;
 
-mongoose.connect('mongodb://localhost:27017/read_share', {
+mongoose.connect('mongodb://mongo:27017/read_share', {
     useNewUrlParser: true,
     useUnifiedTopology: true,
 })
