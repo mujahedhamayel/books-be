@@ -148,3 +148,23 @@ exports.requestBook = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+
+exports.getAllBooksWithUserInfo = async (req, res) => {
+    try {
+        const books = await Book.find().populate('owner', 'name email');
+
+        const currentUser = await User.findById(req.user._id).populate('followedUsers');
+
+        const followedUsers = currentUser.followedUsers.map(user => user._id.toString());
+
+        const booksWithUserInfo = books.map(book => ({
+            ...book._doc,
+            isFollowed: followedUsers.includes(book.owner._id.toString()),
+        }));
+
+        res.json(booksWithUserInfo);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
