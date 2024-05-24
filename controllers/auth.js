@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const User = mongoose.model('User');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
+const Post = require('../models/Post');
+
+const Book = require('../models/Book');
 
 exports.signup = async (req, res) => {
   const newUser = new User(req.body);
@@ -57,34 +60,53 @@ exports.login = async (req, res) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-      const user = await User.findById(req.user._id)
-          .populate('books') // Populate the books field
-          .populate('likedBooks') // Populate the likedBooks field
-          .populate('requests') // Populate the requests field
-          .populate('followedUsers', 'name email'); // Populate the followedUsers field
-      if (!user) {
-          return res.status(404).send({
-              message: 'User not found'
-          });
+    // Find the user and populate relevant fields
+    const user = await User.findById(req.user._id)
+      .populate('books') // Populate the books field
+      .populate('likedBooks') // Populate the likedBooks field
+      .populate('requests') // Populate the requests field
+      .populate('followedUsers', 'name email'); // Populate the followedUsers field
+
+    if (!user) {
+      return res.status(404).send({
+        message: 'User not found'
+      });
+    }
+
+    // Count the number of posts created by the user
+    const postCount = await Post.countDocuments({ id: req.user._id });
+
+    // Count the number of followers (users who follow the current user)
+    const followersCount = await User.countDocuments({ followedUsers: req.user._id });
+
+    // Count the number of users the current user is following
+    const followingCount = user.followedUsers.length;
+
+    // Count the number of books the user has added
+    const booksCount = user.books.length;
+
+    return res.status(200).send({
+      user: {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        birthday: user.birthday,
+        books: user.books,
+        likedBooks: user.likedBooks,
+        requests: user.requests,
+        followedUsers: user.followedUsers,
+        postCount: postCount,
+        followersCount: followersCount,
+        followingCount: followingCount,
+        booksCount: booksCount
       }
-      return res.status(200).send({
-          user: {
-              _id: user._id,
-              name: user.name,
-              email: user.email,
-              birthday: user.birthday,
-              books: user.books,
-              likedBooks: user.likedBooks,
-              requests: user.requests,
-              followedUsers: user.followedUsers
-          }
-      });
+    });
   } catch (error) {
-      console.error("getUserProfile error: ", error);
-      return res.status(500).send({
-          message: 'Server error',
-          error: error.message
-      });
+    console.error("getUserProfile error: ", error);
+    return res.status(500).send({
+      message: 'Server error',
+      error: error.message
+    });
   }
 };
 

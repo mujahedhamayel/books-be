@@ -4,6 +4,7 @@ const Post = require('../models/Post');
 
 // Search for books
 exports.searchBooks = async (req, res) => {
+    console.log("mo mo ");
     try {
         const { query } = req.query;
         const books = await Book.find({ 
@@ -40,7 +41,7 @@ exports.searchPosts = async (req, res) => {
         const { query } = req.query;
         const posts = await Post.find({ 
             description: new RegExp(query, 'i')
-        }).populate('user', 'name email');
+        }).populate('id', 'name email'); // id is for the owner (the name in post schema is "id")
         res.json(posts);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

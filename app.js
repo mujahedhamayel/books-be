@@ -33,7 +33,7 @@ const searchRouter = require('./routes/searchRoute');
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/books', bookRouter);
-app.use('/api/books', searchRouter);
+app.use('/api/search', searchRouter);
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT} .....`);
