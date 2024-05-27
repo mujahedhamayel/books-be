@@ -65,7 +65,8 @@ exports.getUserProfile = async (req, res) => {
       .populate('books') // Populate the books field
       .populate('likedBooks') // Populate the likedBooks field
       .populate('requests') // Populate the requests field
-      .populate('followedUsers', 'name email'); // Populate the followedUsers field
+      .populate('followedUsers', 'name email') // Populate the followedUsers field
+      .populate('imageUrl');
 
     if (!user) {
       return res.status(404).send({
@@ -90,6 +91,7 @@ exports.getUserProfile = async (req, res) => {
         _id: user._id,
         name: user.name,
         email: user.email,
+        imageUrl: user.imageUrl,
         birthday: user.birthday,
         books: user.books,
         likedBooks: user.likedBooks,

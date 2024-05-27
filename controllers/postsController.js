@@ -25,9 +25,21 @@ exports.createPost = async (req, res) => {
 
 // Get all posts (or could be used for getting a user's posts)
 exports.getPosts = async (req, res) => {
+    const { page = 1, limit = 10, sortBy = 'createDate', sortOrder = 'desc' } = req.query;
+
     try {
-        const posts = await Post.find({ id: req.user._id }); // Fetching only the posts of the logged-in user
-        res.status(200).json(posts);
+        const posts = await Post.find()
+            .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+            .skip((page - 1) * limit)
+            .limit(Number(limit));
+
+        const totalPosts = await Post.countDocuments();
+        res.status(200).json({
+            totalPosts,
+            currentPage: page,
+            totalPages: Math.ceil(totalPosts / limit),
+            posts,
+        });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

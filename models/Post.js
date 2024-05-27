@@ -22,5 +22,9 @@ const PostsSchema = new mongoose.Schema({
     comments: { type: [CommentsSchema], default: [] }
 });
 
+PostsSchema.pre('find', function() {
+    this.populate('id'); // Populate the user field
+});
+
 const Post = mongoose.model('Post', PostsSchema);
 module.exports = Post;

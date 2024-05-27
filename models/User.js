@@ -17,6 +17,11 @@ const UserSchema = new Schema({
         trim: true,
         required: true
     },
+    imageUrl: {
+        type: String,
+        trim: true,
+        default : "https://firebasestorage.googleapis.com/v0/b/book-app-1356e.appspot.com/o/posts%2Fprofile-user.jpg?alt=media&token=6ebf68a1-4773-4681-86bf-c71393d49818"
+    },
     email: {
         type: String,
         unique: true,

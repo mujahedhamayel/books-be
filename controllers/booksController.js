@@ -6,6 +6,10 @@ exports.createBook = async (req, res) => {
     try {
         const { title, type, price, image, author, location, pdfLink } = req.body;
 
+        if (!req.user || !req.user._id) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
         const newBook = new Book({
             title,
             type,
@@ -30,8 +34,10 @@ exports.createBook = async (req, res) => {
 
 // Get all books
 exports.getAllBooks = async (req, res) => {
+    console.log("sdasd"); 
     try {
         const books = await Book.find();
+        
         res.json(books);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

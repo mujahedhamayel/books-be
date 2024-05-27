@@ -28,3 +28,6 @@ exports.getUserProfile=(req, res)=> {
       },
     );
   }
+
+
+  

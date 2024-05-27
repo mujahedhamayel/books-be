@@ -10,7 +10,7 @@ router.use(authMiddleware);
 router.post('/', bookController.createBook);
 
 // Get all books
-//router.get('/', bookController.getAllBooks);
+router.get('/', bookController.getAllBooks);
 
 // Get all books to new page
 router.get('/', bookController.getAllBooksWithUserInfo);
