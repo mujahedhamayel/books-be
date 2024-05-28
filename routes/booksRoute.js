@@ -30,4 +30,10 @@ router.post('/:bookId/like', bookController.likeBook);
 // Request to buy or exchange a book
 router.post('/:bookId/request', bookController.requestBook);
 
+// Add a review to a book
+router.post('/:bookId/reviews', bookController.addReview);
+
+// Get reviews for a book
+router.get('/:bookId/reviews', bookController.getReviews);
+
 module.exports = router;

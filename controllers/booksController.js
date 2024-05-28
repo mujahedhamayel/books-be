@@ -10,6 +10,11 @@ exports.createBook = async (req, res) => {
             return res.status(401).json({ message: 'Unauthorized' });
         }
 
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
         const newBook = new Book({
             title,
             type,
@@ -18,7 +23,7 @@ exports.createBook = async (req, res) => {
             author,
             location: type === 'physical' ? location : undefined,
             pdfLink: type === 'pdf' ? pdfLink : undefined,
-            owner: req.user._id // Assuming user ID is stored in req.user._id
+            owner: user.name // Store the username instead of the user ID
         });
 
         const savedBook = await newBook.save();
@@ -170,6 +175,49 @@ exports.getAllBooksWithUserInfo = async (req, res) => {
         }));
 
         res.json(booksWithUserInfo);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+
+ 
+};
+   // Add a review to a book
+   exports.addReview = async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.bookId);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        const user = await User.findById(req.user._id);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        const newReview = {
+            username: user.name,
+            text: req.body.text,
+            date: new Date()
+        };
+
+        book.reviews.push(newReview);
+        await book.save();
+
+        res.status(201).json({ message: 'Review added successfully' });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// Get reviews for a book
+exports.getReviews = async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.bookId);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        res.json(book.reviews);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
