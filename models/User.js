@@ -54,7 +54,10 @@ const UserSchema = new Schema({
     followedUsers: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',
-    }]
+    }],
+    deviceToken: {
+        type: String
+    }
 });
 
 const User = mongoose.model('User', UserSchema);

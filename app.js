@@ -28,12 +28,19 @@ const postRouter = require('./routes/postsRoute');
 const bookRouter = require('./routes/booksRoute');
 const searchRouter = require('./routes/searchRoute');
 
+// firebase notifications
+const admin = require('firebase-admin');
+const serviceAccount = require('./services/serviceAccountKey.json');
 
 // all Routes here
 app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/books', bookRouter);
 app.use('/api/search', searchRouter);
+
+admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount)
+  });
 
 app.listen(PORT, () => {
     console.log(`App running on port ${PORT} .....`);

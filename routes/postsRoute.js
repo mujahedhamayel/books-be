@@ -8,6 +8,8 @@ const authMiddleware = require('../middlewares/verifyToken'); // Assuming you ha
 // Routes for posts
 router.post('/', authMiddleware, postController.createPost);
 router.get('/', authMiddleware, postController.getPosts);
+// Get current user's posts
+router.get('/me',authMiddleware, postController.getCurrentUserPosts);
 router.get('/:postId', authMiddleware, postController.getPostById);
 router.put('/:postId', authMiddleware, postController.updatePost);
 router.delete('/:postId', authMiddleware, postController.deletePost);

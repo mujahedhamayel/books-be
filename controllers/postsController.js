@@ -1,5 +1,4 @@
 'use strict';
-
 const Post = require('../models/Post'); // Adjust the path to where your model is located
 const User = require('../models/User'); // Assuming you have a User model
 
@@ -34,6 +33,30 @@ exports.getPosts = async (req, res) => {
             .limit(Number(limit));
 
         const totalPosts = await Post.countDocuments();
+        res.status(200).json({
+            totalPosts,
+            currentPage: page,
+            totalPages: Math.ceil(totalPosts / limit),
+            posts,
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+// Get current user's posts
+exports.getCurrentUserPosts = async (req, res) => {
+    const { page = 1, limit = 10, sortBy = 'createDate', sortOrder = 'desc' } = req.query;
+    
+  
+    try {
+        const posts = await Post.find({ id: req.user._id })
+        
+
+            .sort({ [sortBy]: sortOrder === 'desc' ? -1 : 1 })
+            .skip((page - 1) * limit)
+            .limit(Number(limit));
+
+        const totalPosts = await Post.countDocuments({ id: req.user._id });
         res.status(200).json({
             totalPosts,
             currentPage: page,

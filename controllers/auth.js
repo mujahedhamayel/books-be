@@ -66,7 +66,8 @@ exports.getUserProfile = async (req, res) => {
       .populate('likedBooks') // Populate the likedBooks field
       .populate('requests') // Populate the requests field
       .populate('followedUsers', 'name email') // Populate the followedUsers field
-      .populate('imageUrl');
+      .populate('imageUrl')
+      .populate('deviceToken');
 
     if (!user) {
       return res.status(404).send({
@@ -97,6 +98,8 @@ exports.getUserProfile = async (req, res) => {
         likedBooks: user.likedBooks,
         requests: user.requests,
         followedUsers: user.followedUsers,
+        deviceToken: user.deviceToken,
+
         postCount: postCount,
         followersCount: followersCount,
         followingCount: followingCount,

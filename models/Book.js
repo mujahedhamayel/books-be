@@ -22,6 +22,7 @@ const BookSchema = new Schema({
         status: { type: String, enum: ['requested', 'accepted', 'available'], default: 'available' },
         requestDate: { type: Date, default: Date.now }
     }],
+    pdfLink: { type: String, required: function() { return this.type === 'pdf'; } },
     reviews: [ReviewSchema]
 }, {
     timestamps: true // Automatically adds createdAt and updatedAt fields
