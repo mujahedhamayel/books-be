@@ -11,6 +11,11 @@ router.post('/', bookController.createBook);
 
 // Get all books
 router.get('/', bookController.getAllBooks);
+// Get all physical books
+router.get('/physical', bookController.getPhysicalBooks);
+
+// Get all pdf books
+router.get('/pdf', bookController.getPdfBooks);
 
 // Get all books to new page
 router.get('/', bookController.getAllBooksWithUserInfo);

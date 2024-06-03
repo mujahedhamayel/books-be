@@ -37,6 +37,7 @@ exports.createBook = async (req, res) => {
     }
 };
 
+
 // Get all books
 exports.getAllBooks = async (req, res) => {
     console.log("sdasd"); 
@@ -49,6 +50,25 @@ exports.getAllBooks = async (req, res) => {
     }
 };
 
+// Get all physical books
+exports.getPhysicalBooks = async (req, res) => {
+    try {
+        const books = await Book.find({ type: 'physical' });
+        res.json(books);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// Get all pdf books
+exports.getPdfBooks = async (req, res) => {
+    try {
+        const books = await Book.find({ type: 'pdf' });
+        res.json(books);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
 // Get a single book by ID
 exports.getBookById = async (req, res) => {
     try {

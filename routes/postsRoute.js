@@ -17,4 +17,7 @@ router.post('/:postId/like', authMiddleware, postController.likePost);
 router.post('/:postId/comment', authMiddleware, postController.commentOnPost);
 router.post('/:postId/comments/:commentId/like', authMiddleware, postController.likeComment);
 
+
+
+router.get('/user/:userId', authMiddleware, postController.getUserPosts);
 module.exports = router;

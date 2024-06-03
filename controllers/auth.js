@@ -4,8 +4,13 @@ const User = mongoose.model('User');
 const jwt = require('jsonwebtoken');
 const uuid = require('uuid');
 const Post = require('../models/Post');
+const NotificationService = require('../services/notification_service'); 
 
 const Book = require('../models/Book');
+
+// const { getStorage, ref, uploadBytes, getDownloadURL } = require("firebase/storage");
+// const multer = require('multer');
+// const upload = multer({ storage: multer.memoryStorage() });
 
 exports.signup = async (req, res) => {
   const newUser = new User(req.body);
@@ -133,11 +138,45 @@ exports.followUser = async (req, res) => {
       } else {
           // Follow the user
           await User.findByIdAndUpdate(req.user._id, { $push: { followedUsers: req.params.userId } });
+
+          // Send notification to the followed user
+          if (userToFollow.deviceToken) {
+              NotificationService.sendNotification(
+                  userToFollow.deviceToken,
+                  'New Follower',
+                  `${currentUser.name} has followed you!`
+              );
+          }
+
           return res.status(200).json({ message: 'User followed successfully' });
       }
   } catch (error) {
       console.error("followUser error: ", error);
       res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.updateUserProfilePhoto = async (req, res) => {
+  try {
+    const { imageUrl } = req.body;
+
+    if (!imageUrl) {
+      return res.status(400).json({ message: 'Image URL is required' });
+    }
+
+    const user = await User.findById(req.params.userId);
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    user.imageUrl = imageUrl;
+    await user.save();
+
+    res.status(200).json({ message: 'Profile photo updated successfully', imageUrl });
+  } catch (error) {
+    console.error('updateUserProfilePhoto error: ', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 
