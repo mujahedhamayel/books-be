@@ -124,7 +124,7 @@ exports.deleteBook = async (req, res) => {
     }
 };
 
-// Like a book
+// Like or unlike a book
 exports.likeBook = async (req, res) => {
     try {
         const book = await Book.findById(req.params.bookId);
@@ -132,18 +132,27 @@ exports.likeBook = async (req, res) => {
             return res.status(404).json({ message: 'Book not found' });
         }
 
-        // Check if the user has already liked the book
-        if (book.likes.includes(req.user._id)) {
-            return res.status(400).json({ message: 'You have already liked this book' });
+        const userIndex = book.likes.indexOf(req.user._id);
+
+        if (userIndex > -1) {
+            // User already liked the book, so unlike it
+            book.likes.splice(userIndex, 1);
+            await book.save();
+
+            // Remove the book from the user's likedBooks array
+            await User.findByIdAndUpdate(req.user._id, { $pull: { likedBooks: book._id } });
+
+            return res.json({ message: 'Book unliked successfully' });
+        } else {
+            // User has not liked the book, so like it
+            book.likes.push(req.user._id);
+            await book.save();
+
+            // Add the book to the user's likedBooks array
+            await User.findByIdAndUpdate(req.user._id, { $push: { likedBooks: book._id } });
+
+            return res.json({ message: 'Book liked successfully' });
         }
-
-        book.likes.push(req.user._id);
-        await book.save();
-
-        // Add the book to the user's likedBooks array
-        await User.findByIdAndUpdate(req.user._id, { $push: { likedBooks: book._id } });
-
-        res.json({ message: 'Book liked successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
@@ -238,6 +247,20 @@ exports.getReviews = async (req, res) => {
         }
 
         res.json(book.reviews);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+// Get all liked books by the logged-in user
+exports.getLikedBooks = async (req, res) => {
+    try {
+        const user = await User.findById(req.user._id).populate('likedBooks');
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        res.json(user.likedBooks);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

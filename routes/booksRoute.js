@@ -20,6 +20,10 @@ router.get('/pdf', bookController.getPdfBooks);
 // Get all books to new page
 router.get('/', bookController.getAllBooksWithUserInfo);
 
+// Get all liked books by the logged-in user
+router.get('/liked', bookController.getLikedBooks);
+
+
 // Get a single book by ID
 router.get('/:bookId', bookController.getBookById);
 
@@ -40,5 +44,4 @@ router.post('/:bookId/reviews', bookController.addReview);
 
 // Get reviews for a book
 router.get('/:bookId/reviews', bookController.getReviews);
-
 module.exports = router;
