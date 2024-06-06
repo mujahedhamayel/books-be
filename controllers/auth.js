@@ -119,7 +119,97 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+// Example controller method
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.userId).populate('books').populate('likedBooks').populate('requests').populate('followedUsers');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+exports.getAllUsers = async (req, res) => {
+  try {
+    const users = await User.find().select('-password'); // Exclude passwords from the response
+    res.status(200).json(users);
+  } catch (error) {
+    console.error("getAllUsers error: ", error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+exports.getFollowedUsers = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id)
+      .populate('followedUsers', 'name email imageUrl'); // Populate the followedUsers field with specific details
 
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(currentUser.followedUsers);
+  } catch (error) {
+    console.error(`getFollowedUsers error: ${error.message}`);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+// Controller method
+
+exports.getUserByName = async (req, res) => {
+  try {
+    console.log(`Searching for user with name: ${req.params.name}`);
+    const user = await User.findOne({ name: req.params.name })
+      .populate('books')
+      .populate('likedBooks')
+      .populate('requests')
+      .populate('followedUsers');
+
+    if (!user) {
+      console.log(`User with name ${req.params.name} not found`);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log(`User found: ${user}`);
+    res.json(user);
+  } catch (error) {
+    console.error(`Server error: ${error.message}`);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+exports.addChattedUser = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const currentUser = await User.findById(req.user._id);
+
+    if (!currentUser.chattedUsers.includes(userId)) {
+      currentUser.chattedUsers.push(userId);
+      await currentUser.save();
+    }
+
+    res.status(200).json({ message: 'User added to chatted list' });
+  } catch (error) {
+    console.error(`addChattedUser error: ${error.message}`);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+exports.getChattedUsers = async (req, res) => {
+  try {
+    const currentUser = await User.findById(req.user._id)
+      .populate('chattedUsers', 'name email imageUrl'); // Populate chattedUsers field
+
+    if (!currentUser) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    res.json(currentUser.chattedUsers);
+  } catch (error) {
+    console.error(`getChattedUsers error: ${error.message}`);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
 // Follow or unfollow a user
 exports.followUser = async (req, res) => {
   try {
@@ -138,6 +228,10 @@ exports.followUser = async (req, res) => {
       } else {
           // Follow the user
           await User.findByIdAndUpdate(req.user._id, { $push: { followedUsers: req.params.userId } });
+
+          // Remove from chattedUsers if present
+      await User.findByIdAndUpdate(req.user._id, { $pull: { chattedUsers: req.params.userId } });
+
 
           // Send notification to the followed user
           if (userToFollow.deviceToken) {

@@ -57,7 +57,12 @@ const UserSchema = new Schema({
     }],
     deviceToken: {
         type: String
-    }
+    },
+    
+  chattedUsers: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+  }]
 });
 
 const User = mongoose.model('User', UserSchema);

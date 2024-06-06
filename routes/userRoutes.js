@@ -9,6 +9,17 @@ router.post('/signup', authController.signup);
 router.post('/login', authController.login);
 
 router.get('/profile', verifyToken, authController.getUserProfile);
+router.get('/users', verifyToken, authController.getAllUsers);
+
+router.get('/followed-users', verifyToken, authController.getFollowedUsers);
+router.get('/chatted-users', verifyToken, authController.getChattedUsers);
+
+router.get('/:userId', verifyToken, authController.getUserById);
+
+router.get('/name/:name', verifyToken, authController.getUserByName);
+router.post('/:userId/chat', verifyToken, authController.addChattedUser);
+
+
 router.post('/:userId/follow', verifyToken, authController.followUser);
 
 router.get('/:userId/is-following', verifyToken, async (req, res) => {
