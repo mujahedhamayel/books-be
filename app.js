@@ -27,6 +27,8 @@ const userRouter = require('./routes/userRoutes');
 const postRouter = require('./routes/postsRoute');
 const bookRouter = require('./routes/booksRoute');
 const searchRouter = require('./routes/searchRoute');
+const notificationRouter = require('./routes/notificationRoute');
+
 
 // firebase notifications
 const admin = require('firebase-admin');
@@ -37,6 +39,8 @@ app.use('/api/users', userRouter);
 app.use('/api/posts', postRouter);
 app.use('/api/books', bookRouter);
 app.use('/api/search', searchRouter);
+app.use('/api/notification', notificationRouter);
+
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)

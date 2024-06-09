@@ -16,6 +16,8 @@ router.delete('/:postId', authMiddleware, postController.deletePost);
 router.post('/:postId/like', authMiddleware, postController.likePost);
 router.post('/:postId/comment', authMiddleware, postController.commentOnPost);
 router.post('/:postId/comments/:commentId/like', authMiddleware, postController.likeComment);
+// Add this route to your posts router
+router.get('/:postId/comments', authMiddleware, postController.getComments);
 
 
 

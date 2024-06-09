@@ -16,6 +16,9 @@ exports.createPost = async (req, res) => {
             description: req.body.description,
         });
         const post = await newPost.save();
+         // Increment the post count for the user
+         await User.findByIdAndUpdate(req.user._id, { $inc: { postCount: 1 } });
+
         res.status(201).json(post);
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -43,10 +46,7 @@ exports.getPosts = async (req, res) => {
                 .populate('followedUsers', 'name email');
 
             if (user) {
-                const postCount = await Post.countDocuments({ id: user._id });
-                const followersCount = await User.countDocuments({ followedUsers: user._id });
-                const followingCount = user.followedUsers.length;
-                const booksCount = user.books.length;
+                
 
                 return {
                     ...post._doc,
@@ -60,10 +60,10 @@ exports.getPosts = async (req, res) => {
                         requests: user.requests,
                         followedUsers: user.followedUsers,
                         deviceToken: user.deviceToken,
-                        postCount,
-                        followersCount,
-                        followingCount,
-                        booksCount,
+                        postCount: user.postCount,
+                        followersCount: user.followersCount,
+                        followingCount: user.followingCount,
+                        booksCount: user.booksCount,
                     }
                 };
             } else {
@@ -105,11 +105,7 @@ exports.getCurrentUserPosts = async (req, res) => {
                 .populate('followedUsers', 'name email');
 
             if (user) {
-                const postCount = await Post.countDocuments({ id: user._id });
-                const followersCount = await User.countDocuments({ followedUsers: user._id });
-                const followingCount = user.followedUsers.length;
-                const booksCount = user.books.length;
-
+               
                 return {
                     ...post._doc,
                     user: {
@@ -122,10 +118,10 @@ exports.getCurrentUserPosts = async (req, res) => {
                         requests: user.requests,
                         followedUsers: user.followedUsers,
                         deviceToken: user.deviceToken,
-                        postCount,
-                        followersCount,
-                        followingCount,
-                        booksCount,
+                        postCount: user.postCount,
+                        followersCount: user.followersCount,
+                        followingCount: user.followingCount,
+                        booksCount: user.booksCount,
                     }
                 };
             } else {
@@ -182,6 +178,8 @@ exports.deletePost = async (req, res) => {
     try {
         const post = await Post.findOneAndDelete({ _id: req.params.postId, id: req.user._id });
         if (!post) return res.status(404).json({ message: 'Post not found or user not authorized' });
+        // Decrement the post count for the user
+        await User.findByIdAndUpdate(req.user._id, { $inc: { postCount: -1 } });
         res.status(200).json({ message: 'Post deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -191,17 +189,20 @@ exports.deletePost = async (req, res) => {
 // Like a post
 exports.likePost = async (req, res) => {
     try {
+        
         const post = await Post.findById(req.params.postId);
         if (!post) return res.status(404).json({ message: 'Post not found' });
 
         if (!post.Like.includes(req.user._id)) {
             post.Like.push(req.user._id);
+            res.status(200).json({ message: 'Post liked', post });
         } else {
-            post.Like = post.Like.filter(userId => userId !== req.user._id);
+            post.Like = post.Like.filter(userId => userId.toString() !== req.user._id.toString());
+            res.status(200).json({ message: 'Post unliked', post });
         }
 
         await post.save();
-        res.status(200).json(post);
+        
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -222,6 +223,52 @@ exports.commentOnPost = async (req, res) => {
         post.comments.push(comment); // Assuming comments is an array in the post schema
         await post.save();
         res.status(201).json(post);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+// In postsController.js
+exports.getComments = async (req, res) => {
+    try {
+        const post = await Post.findById(req.params.postId).populate('comments.user', 'name imageUrl');
+        if (!post) return res.status(404).json({ message: 'Post not found' });
+
+        // Fetch and include full user details for each comment
+        const commentsWithUserDetails = await Promise.all(post.comments.map(async (comment) => {
+            const user = await User.findById(comment.user)
+                .populate('books')
+                .populate('likedBooks')
+                .populate('requests')
+                .populate('followedUsers', 'name email');
+
+            if (user) {
+                return {
+                    ...comment._doc,
+                    user: {
+                        _id: user._id,
+                        name: user.name,
+                        email: user.email,
+                        imageUrl: user.imageUrl,
+                        books: user.books,
+                        likedBooks: user.likedBooks,
+                        requests: user.requests,
+                        followedUsers: user.followedUsers,
+                        deviceToken: user.deviceToken,
+                        postCount: user.postCount,
+                        followersCount: user.followersCount,
+                        followingCount: user.followingCount,
+                        booksCount: user.booksCount,
+                    },
+                };
+            } else {
+                return {
+                    ...comment._doc,
+                    user: null,
+                };
+            }
+        }));
+
+        res.status(200).json(commentsWithUserDetails);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
@@ -273,10 +320,7 @@ exports.getUserPosts = async (req, res) => {
                 .populate('followedUsers', 'name email');
 
             if (user) {
-                const postCount = await Post.countDocuments({ id: user._id });
-                const followersCount = await User.countDocuments({ followedUsers: user._id });
-                const followingCount = user.followedUsers.length;
-                const booksCount = user.books.length;
+                
 
                 return {
                     ...post._doc,
@@ -290,10 +334,10 @@ exports.getUserPosts = async (req, res) => {
                         requests: user.requests,
                         followedUsers: user.followedUsers,
                         deviceToken: user.deviceToken,
-                        postCount,
-                        followersCount,
-                        followingCount,
-                        booksCount,
+                        postCount: user.postCount,
+                        followersCount: user.followersCount,
+                        followingCount: user.followingCount,
+                        booksCount: user.booksCount,
                     }
                 };
             } else {

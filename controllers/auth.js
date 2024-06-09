@@ -65,12 +65,11 @@ exports.login = async (req, res) => {
 
 exports.getUserProfile = async (req, res) => {
   try {
-    // Find the user and populate relevant fields
     const user = await User.findById(req.user._id)
-      .populate('books') // Populate the books field
-      .populate('likedBooks') // Populate the likedBooks field
-      .populate('requests') // Populate the requests field
-      .populate('followedUsers', 'name email') // Populate the followedUsers field
+      .populate('books')
+      .populate('likedBooks')
+      .populate('requests')
+      .populate('followedUsers', 'name email')
       .populate('imageUrl')
       .populate('deviceToken');
 
@@ -79,18 +78,6 @@ exports.getUserProfile = async (req, res) => {
         message: 'User not found'
       });
     }
-
-    // Count the number of posts created by the user
-    const postCount = await Post.countDocuments({ id: req.user._id });
-
-    // Count the number of followers (users who follow the current user)
-    const followersCount = await User.countDocuments({ followedUsers: req.user._id });
-
-    // Count the number of users the current user is following
-    const followingCount = user.followedUsers.length;
-
-    // Count the number of books the user has added
-    const booksCount = user.books.length;
 
     return res.status(200).send({
       user: {
@@ -104,11 +91,10 @@ exports.getUserProfile = async (req, res) => {
         requests: user.requests,
         followedUsers: user.followedUsers,
         deviceToken: user.deviceToken,
-
-        postCount: postCount,
-        followersCount: followersCount,
-        followingCount: followingCount,
-        booksCount: booksCount
+        postCount: user.postCount,
+        followersCount: user.followersCount,
+        followingCount: user.followingCount,
+        booksCount: user.booksCount
       }
     });
   } catch (error) {
@@ -119,6 +105,8 @@ exports.getUserProfile = async (req, res) => {
     });
   }
 };
+
+
 // Example controller method
 exports.getUserById = async (req, res) => {
   try {
@@ -221,32 +209,43 @@ exports.followUser = async (req, res) => {
       const currentUser = await User.findById(req.user._id);
 
       // Check if the user is already following the other user
-      if (currentUser.followedUsers.includes(req.params.userId)) {
-          // Unfollow the user
-          await User.findByIdAndUpdate(req.user._id, { $pull: { followedUsers: req.params.userId } });
-          return res.status(200).json({ message: 'User unfollowed successfully' });
-      } else {
-          // Follow the user
-          await User.findByIdAndUpdate(req.user._id, { $push: { followedUsers: req.params.userId } });
+    if (currentUser.followedUsers.includes(req.params.userId)) {
+      // Unfollow the user
+      await User.findByIdAndUpdate(req.user._id, { 
+        $pull: { followedUsers: req.params.userId },
+        $inc: { followingCount: -1 }
+      });
+      await User.findByIdAndUpdate(req.params.userId, {
+        $inc: { followersCount: -1 }
+      });
+      return res.status(200).json({ message: 'User unfollowed successfully' });
+    } else {
+      // Follow the user
+      await User.findByIdAndUpdate(req.user._id, { 
+        $push: { followedUsers: req.params.userId },
+        $inc: { followingCount: 1 }
+      });
+      await User.findByIdAndUpdate(req.params.userId, {
+        $inc: { followersCount: 1 }
+      });
 
-          // Remove from chattedUsers if present
+      // Remove from chattedUsers if present
       await User.findByIdAndUpdate(req.user._id, { $pull: { chattedUsers: req.params.userId } });
 
-
-          // Send notification to the followed user
-          if (userToFollow.deviceToken) {
-              NotificationService.sendNotification(
-                  userToFollow.deviceToken,
-                  'New Follower',
-                  `${currentUser.name} has followed you!`
-              );
-          }
-
-          return res.status(200).json({ message: 'User followed successfully' });
+      // Send notification to the followed user
+      if (userToFollow.deviceToken) {
+        NotificationService.sendNotification(
+          userToFollow.deviceToken,
+          'New Follower',
+          `${currentUser.name} has followed you!`
+        );
       }
+
+      return res.status(200).json({ message: 'User followed successfully' });
+    }
   } catch (error) {
-      console.error("followUser error: ", error);
-      res.status(500).json({ message: 'Server error', error: error.message });
+    console.error("followUser error: ", error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 };
 

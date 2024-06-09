@@ -29,7 +29,7 @@ exports.createBook = async (req, res) => {
         const savedBook = await newBook.save();
 
         // Add the book to the user's books array
-        await User.findByIdAndUpdate(req.user._id, { $push: { books: savedBook._id } });
+        await User.findByIdAndUpdate(req.user._id, { $push: { books: savedBook._id },$inc: { booksCount: 1 } });
 
         res.status(201).json(savedBook);
     } catch (error) {
@@ -118,6 +118,11 @@ exports.deleteBook = async (req, res) => {
         if (!deletedBook) {
             return res.status(404).json({ message: 'Book not found' });
         }
+        // Remove the book from the user's books array and decrement the books count
+        await User.findByIdAndUpdate(deletedBook.owner, { 
+            $pull: { books: deletedBook._id },
+            $inc: { booksCount: -1 }
+        });
         res.json({ message: 'Book deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });

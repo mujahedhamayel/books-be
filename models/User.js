@@ -62,7 +62,38 @@ const UserSchema = new Schema({
   chattedUsers: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-  }]
+  }],
+  postCount: {
+    type: Number,
+    default: 0
+},
+followersCount: {
+    type: Number,
+    default: 0
+},
+followingCount: {
+    type: Number,
+    default: 0
+},
+booksCount: {
+    type: Number,
+    default: 0
+},
+mobileNumber: {
+    type: String,
+    trim: true,
+    required: true
+},
+address: {
+    type: String,
+    trim: true,
+    required: true
+},
+gender: {
+    type: String,
+    enum: ['Male', 'Female'],
+    required: true
+}
 });
 
 const User = mongoose.model('User', UserSchema);
