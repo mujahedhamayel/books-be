@@ -7,7 +7,7 @@ const NotificationService = require('../services/notification_service'); // Assu
 
 router.post('/signup', authController.signup);
 router.post('/login', authController.login);
-
+router.post('/logout', verifyToken, authController.logout);
 router.get('/profile', verifyToken, authController.getUserProfile);
 router.get('/users', verifyToken, authController.getAllUsers);
 
@@ -34,7 +34,7 @@ router.get('/:userId/is-following', verifyToken, async (req, res) => {
 });
 
 
-router.post('/logout', authController.logout);
+
 
 router.post('/update-token', verifyToken, async (req, res) => {
     try {

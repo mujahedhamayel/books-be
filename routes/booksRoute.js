@@ -20,6 +20,9 @@ router.get('/pdf', bookController.getPdfBooks);
 // Get all books to new page
 router.get('/', bookController.getAllBooksWithUserInfo);
 
+// Get all books created by the logged-in user
+router.get('/user/books', bookController.getBooksByUser);
+
 // Get all liked books by the logged-in user
 router.get('/liked', bookController.getLikedBooks);
 

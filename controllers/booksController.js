@@ -50,6 +50,16 @@ exports.getAllBooks = async (req, res) => {
     }
 };
 
+// Get all books created by the logged-in user
+exports.getBooksByUser = async (req, res) => {
+    try {
+        const books = await Book.find({ owner: req.user.name });
+        res.json(books);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
 // Get all physical books
 exports.getPhysicalBooks = async (req, res) => {
     try {
