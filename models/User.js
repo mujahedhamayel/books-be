@@ -84,10 +84,15 @@ mobileNumber: {
     trim: true,
     required: true
 },
-address: {
-    type: String,
-    trim: true,
-    required: true
+location: {
+    latitude: {
+        type: Number,
+        required: true
+    },
+    longitude: {
+        type: Number,
+        required: true
+    }
 },
 gender: {
     type: String,

@@ -8,6 +8,15 @@ const ReviewSchema = new Schema({
     date: { type: Date, default: Date.now }
 });
 
+const RatingSchema = new Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    score: { type: Number, required: true, min: 1, max: 5 }
+});
+const RequestSchema = new Schema({
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    status: { type: String, enum: ['requested', 'accepted', 'available'], default: 'available' },
+    requestDate: { type: Date, default: Date.now }
+});
 const BookSchema = new Schema({
     title: { type: String, required: true },
     type: { type: String, enum: ['pdf', 'physical'], required: true },
@@ -17,13 +26,12 @@ const BookSchema = new Schema({
     location: { type: String, required: function() { return this.type === 'physical'; } },
     owner: { type: String, required: true }, // Changed to store the username
     likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-    requests: [{
-        user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-        status: { type: String, enum: ['requested', 'accepted', 'available'], default: 'available' },
-        requestDate: { type: Date, default: Date.now }
-    }],
+    requests: [RequestSchema],
     pdfLink: { type: String, required: function() { return this.type === 'pdf'; } },
-    reviews: [ReviewSchema]
+    reviews: [ReviewSchema],
+    rate: { type: Number, default: 0 },
+    ratings: [RatingSchema],
+    status: { type: String, enum: ['available', 'requested', 'booked'], default: 'available' } // New field
 }, {
     timestamps: true // Automatically adds createdAt and updatedAt fields
 });

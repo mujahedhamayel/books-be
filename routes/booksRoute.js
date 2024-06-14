@@ -22,9 +22,15 @@ router.get('/', bookController.getAllBooksWithUserInfo);
 
 // Get all books created by the logged-in user
 router.get('/user/books', bookController.getBooksByUser);
+router.get('/user/book-requests', bookController.getUserBookRequests);
+
 
 // Get all liked books by the logged-in user
 router.get('/liked', bookController.getLikedBooks);
+
+router.post('/:bookId/rate', bookController.rateBook);
+
+router.get('/:bookId/user-rating', bookController.getUserRating);
 
 
 // Get a single book by ID
@@ -41,6 +47,15 @@ router.post('/:bookId/like', bookController.likeBook);
 
 // Request to buy or exchange a book
 router.post('/:bookId/request', bookController.requestBook);
+
+// Get the status of a book
+router.get('/:bookId/status', bookController.getBookStatus);
+
+// Get requests for a book
+router.get('/:bookId/requests', bookController.getBookRequests);
+
+// Accept a request for a book
+router.post('/:bookId/requests/:requestId/accept', bookController.acceptBookRequest);
 
 // Add a review to a book
 router.post('/:bookId/reviews', bookController.addReview);

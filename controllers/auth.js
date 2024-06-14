@@ -16,6 +16,7 @@ exports.signup = async (req, res) => {
   const newUser = new User(req.body);
   newUser.id = uuid.v4();
   newUser.password = bcrypt.hashSync(req.body.password, 10);
+  
   try {
     const user = await newUser.save();
     const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET);
@@ -94,7 +95,8 @@ exports.getUserProfile = async (req, res) => {
         postCount: user.postCount,
         followersCount: user.followersCount,
         followingCount: user.followingCount,
-        booksCount: user.booksCount
+        booksCount: user.booksCount,
+        location: user.location
       }
     });
   } catch (error) {
