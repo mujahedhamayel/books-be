@@ -358,20 +358,25 @@ exports.requestBook = async (req, res) => {
         // Check if the book is already booked
         if (book.status === 'booked') {
             return res.status(400).json({ message: 'The book is already booked up.' });
-        }
 
+        }
+        // Check if the user has already requested the book
+        const existingRequest = book.requests.find(request => request.user._id.equals(userId));
+        if (existingRequest) {
+            return res.status(400).json({ message: 'You have already requested this book.' });
+        }
         // Check if the book is available for request
         if (book.status === 'available') {
             book.status = 'requested';
-            book.requests.push({ user: userId });
+            book.requests.push({ user: userId, status: "requested" });
             await book.save();
             return res.status(200).json({ message: 'You have successfully requested the book.' });
         }
 
         // Check if the book is requested but not yet accepted
-        const existingRequest = book.requests.find(req => req.status === 'requested');
-        if (existingRequest) {
-            book.requests.push({ user: userId });
+        //const existingRequest = book.requests.find(req => req.status === 'requested');
+        if (book.status == 'requested') {
+            book.requests.push({ user: userId, status: "requested" });
             await book.save();
             return res.status(200).json({ message: 'The book is already requested but your request has been added to the list.' });
         }
@@ -424,10 +429,29 @@ exports.getUserBookRequests = async (req, res) => {
         }
 
         const requests = books.map(book => ({
-            bookId: book._id,
+            _id: book._id,
             title: book.title,
             image: book.image,
-            requests: book.requests
+            requests: book.requests.map(req => ({
+                user: req.user._id,
+                status: req.status,
+                _id: req._id,
+                requestDate: req.requestDate
+            })),
+            type: book.type,
+            owner:book.owner,
+            updatedAt:book.updatedAt,
+            author:book.author,
+            location:book.location,
+            rate:book.rate,
+            pdfLink:book.pdfLink,
+            userRating:book.userRating,
+            price:book.price,
+            likes: book.likes,
+
+
+
+
         }));
 
         res.json(requests);
@@ -475,9 +499,48 @@ exports.acceptBookRequest = async (req, res) => {
 
         request.status = 'accepted';
         book.status = 'booked';
+        
+        // Deny all other requests
+        book.requests.forEach((req) => {
+            if (req._id.toString() !== request.id.toString()) {
+                req.status = 'denied';
+            }
+        });
+
         await book.save();
 
         res.json({ message: 'Request accepted successfully', book });
+    } catch (error) {
+        console.log(error);
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+// Deny a request for a book
+exports.denyBookRequest = async (req, res) => {
+    try {
+        const book = await Book.findById(req.params.bookId);
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+
+        // Ensure the book owner is the one making the request
+        if (book.owner !== req.user.name) {
+            return res.status(403).json({ message: 'You are not authorized to deny requests for this book' });
+        }
+
+        const request = book.requests.id(req.params.requestId);
+        if (!request) {
+            return res.status(404).json({ message: 'Request not found' });
+        }
+
+        // Deny the specific request
+        request.status = 'denied';
+
+        await book.save();
+
+        res.json({ message: 'Request denied successfully', book });
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

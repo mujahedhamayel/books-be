@@ -56,6 +56,7 @@ router.get('/:bookId/requests', bookController.getBookRequests);
 
 // Accept a request for a book
 router.post('/:bookId/requests/:requestId/accept', bookController.acceptBookRequest);
+router.post('/:bookId/requests/:requestId/deny', bookController.denyBookRequest);
 
 // Add a review to a book
 router.post('/:bookId/reviews', bookController.addReview);

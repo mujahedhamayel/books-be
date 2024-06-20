@@ -14,7 +14,7 @@ const RatingSchema = new Schema({
 });
 const RequestSchema = new Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    status: { type: String, enum: ['requested', 'accepted', 'available'], default: 'available' },
+    status: { type: String, enum: ['requested', 'accepted', 'denied'], default: 'requested' },
     requestDate: { type: Date, default: Date.now }
 });
 const BookSchema = new Schema({
