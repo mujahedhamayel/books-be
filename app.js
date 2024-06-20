@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
+const cors = require('cors');
 
 require('dotenv').config();
 
@@ -19,7 +20,14 @@ require('./models/User')
 require('./models/Book')
 
 const app = express();
-
+// Use the CORS middleware
+const corsOptions = {
+    origin: '*', // Allow all origins
+    optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+  };
+  
+  app.use(cors(corsOptions));
+  
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 
@@ -40,6 +48,7 @@ app.use('/api/posts', postRouter);
 app.use('/api/books', bookRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/notification', notificationRouter);
+
 
 
 admin.initializeApp({
