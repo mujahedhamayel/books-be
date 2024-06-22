@@ -22,12 +22,15 @@ router.get('/', bookController.getAllBooksWithUserInfo);
 
 // Get all books created by the logged-in user
 router.get('/user/books', bookController.getBooksByUser);
+//get requests for the user books
 router.get('/user/book-requests', bookController.getUserBookRequests);
-
+// Get all requests made by the logged-in user for other books
+router.get('/user/requests', bookController.getUserRequestsForOtherBooks);
 
 // Get all liked books by the logged-in user
 router.get('/liked', bookController.getLikedBooks);
-
+// Get book by URL (or another unique identifier like pdfLink)
+router.get('/url/:pdfLink', bookController.getBookByUrl);
 router.post('/:bookId/rate', bookController.rateBook);
 
 router.get('/:bookId/user-rating', bookController.getUserRating);
@@ -57,7 +60,8 @@ router.get('/:bookId/requests', bookController.getBookRequests);
 // Accept a request for a book
 router.post('/:bookId/requests/:requestId/accept', bookController.acceptBookRequest);
 router.post('/:bookId/requests/:requestId/deny', bookController.denyBookRequest);
-
+// Delete a request
+router.delete('/:bookId/requests/:requestId', bookController.deleteRequest);
 // Add a review to a book
 router.post('/:bookId/reviews', bookController.addReview);
 

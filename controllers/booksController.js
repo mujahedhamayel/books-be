@@ -1,5 +1,7 @@
 const Book = require('../models/Book');
 const User = require('../models/User');
+const NotificationService = require('../services/notification_service'); 
+
 
 // Create a new book
 exports.createBook = async (req, res) => {
@@ -370,7 +372,18 @@ exports.requestBook = async (req, res) => {
             book.status = 'requested';
             book.requests.push({ user: userId, status: "requested" });
             await book.save();
+            // Send notification to the book owner
+            const bookOwner = await User.findOne({ name: book.owner });
+            if (bookOwner && bookOwner.deviceToken) {
+                NotificationService.sendNotification(
+                    bookOwner.deviceToken,
+                    'New Book Request',
+                    `${req.user.name} has requested your book: ${book.title}`
+                );
+            }
+
             return res.status(200).json({ message: 'You have successfully requested the book.' });
+
         }
 
         // Check if the book is requested but not yet accepted
@@ -378,6 +391,17 @@ exports.requestBook = async (req, res) => {
         if (book.status == 'requested') {
             book.requests.push({ user: userId, status: "requested" });
             await book.save();
+
+             // Send notification to the book owner
+             const bookOwner = await User.findOne({ name: book.owner });
+             if (bookOwner && bookOwner.deviceToken) {
+                 NotificationService.sendNotification(
+                     bookOwner.deviceToken,
+                     'New Book Request',
+                     `${req.user.name} has requested your book: ${book.title}`
+                 );
+             }
+
             return res.status(200).json({ message: 'The book is already requested but your request has been added to the list.' });
         }
 
@@ -428,7 +452,14 @@ exports.getUserBookRequests = async (req, res) => {
             return res.status(404).json({ message: 'No books found for the user' });
         }
 
-        const requests = books.map(book => ({
+        const physicalBooksWithRequests = books.filter(book => book.type === 'physical' && book.requests.length > 0);
+
+        if (!physicalBooksWithRequests.length) {
+            return res.status(404).json({ message: 'No physical books found for the user' });
+        }
+
+
+        const requests = physicalBooksWithRequests.map(book => ({
             _id: book._id,
             title: book.title,
             image: book.image,
@@ -459,6 +490,83 @@ exports.getUserBookRequests = async (req, res) => {
         res.status(500).json({ message: 'Server error', error: error.message });
     }
 };
+
+exports.getUserRequestsForOtherBooks = async (req, res) => {
+    try {
+        const userId = req.user._id;
+
+        // Find books where the logged-in user has made requests
+        const books = await Book.find({ "requests.user": userId }).populate('requests.user');
+
+        // Filter out only the requests made by the logged-in user
+        const filteredBooks = books.map(book => {
+            const userRequests = book.requests.filter(req => req.user._id.equals(userId));
+            return {
+                _id: book._id,
+                title: book.title,
+                image: book.image,
+                requests: userRequests.map(req => ({
+                    user: req.user._id,
+                    status: req.status,
+                    _id: req._id,
+                    requestDate: req.requestDate
+                })),
+                type: book.type,
+                owner: book.owner,
+                updatedAt: book.updatedAt,
+                author: book.author,
+                location: book.location,
+                rate: book.rate,
+                pdfLink: book.pdfLink,
+                userRating: book.userRating,
+                price: book.price,
+                likes: book.likes,
+            };
+        });
+
+        res.json(filteredBooks);
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+exports.deleteRequest = async (req, res) => {
+    try {
+      const { bookId, requestId } = req.params;
+  
+      const book = await Book.findById(bookId);
+      if (!book) {
+        return res.status(404).json({ message: 'Book not found' });
+      }
+  
+      // Find the request to be deleted
+      const requestIndex = book.requests.findIndex(req => req._id.equals(requestId));
+      if (requestIndex === -1) {
+        return res.status(404).json({ message: 'Request not found' });
+      }
+      
+      // Remove the request
+      book.requests.splice(requestIndex, 1);
+
+      // Check if there are any accepted requests
+    const hasAcceptedRequest = book.requests.some(req => req.status === 'accepted');
+  
+      // Update the book status based on remaining requests
+      if (book.status === 'booked'  && !hasAcceptedRequest && book.requests.length > 0 ) {
+        book.status = 'requested';
+      } else if (book.requests.length === 0) {
+        book.status = 'available';
+      }
+  
+      await book.save();
+  
+      res.status(200).json({ message: 'Request deleted successfully', book });
+    } catch (error) {
+      res.status(500).json({ message: 'Server error', error: error.message });
+    }
+  };
+
 
 // Get requests for a book
 exports.getBookRequests = async (req, res) => {
@@ -509,6 +617,16 @@ exports.acceptBookRequest = async (req, res) => {
 
         await book.save();
 
+         // Send notification to the requester
+         const requester = await User.findById(request.user);
+         if (requester && requester.deviceToken) {
+             NotificationService.sendNotification(
+                 requester.deviceToken,
+                 'Request Accepted',
+                 `Your request for the book "${book.title}" has been accepted by the owner "${book.owner}" contact with him :).`
+             );
+         }
+
         res.json({ message: 'Request accepted successfully', book });
     } catch (error) {
         console.log(error);
@@ -541,6 +659,21 @@ exports.denyBookRequest = async (req, res) => {
         await book.save();
 
         res.json({ message: 'Request denied successfully', book });
+    } catch (error) {
+        res.status(500).json({ message: 'Server error', error: error.message });
+    }
+};
+
+
+// Get book by URL (or another unique identifier like pdfLink)
+exports.getBookByUrl = async (req, res) => {
+    try {
+        const { pdfLink } = req.params;
+        const book = await Book.findOne({ pdfLink });
+        if (!book) {
+            return res.status(404).json({ message: 'Book not found' });
+        }
+        res.json(book);
     } catch (error) {
         res.status(500).json({ message: 'Server error', error: error.message });
     }

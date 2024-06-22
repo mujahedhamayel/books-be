@@ -20,7 +20,7 @@ const RequestSchema = new Schema({
 const BookSchema = new Schema({
     title: { type: String, required: true },
     type: { type: String, enum: ['pdf', 'physical'], required: true },
-    price: { type: Number, required: true, min: 0 },
+    price: { type: Number, min: 0 },
     image: { type: String, required: true },
     author: { type: String, required: true },
     location: { type: String, required: function() { return this.type === 'physical'; } },
