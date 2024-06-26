@@ -1,5 +1,5 @@
-const Post = require('../models/Post'); // Adjust the path to where your model is located
-const User = require('../models/User'); // Assuming you have a User model
+const Post = require('../models/Post'); 
+const User = require('../models/User'); 
 const NotificationService = require('../services/notification_service'); 
 
 
@@ -13,7 +13,7 @@ exports.sendChat = async (req, res) => {
           return res.status(404).json({ message: 'User not found' });
         }
         const currentUser = await User.findById(req.user._id);
-        // Assuming you have a service to send notifications
+        
         NotificationService.sendNotification(
           user.deviceToken,
           `${currentUser.name}`,

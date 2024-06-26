@@ -25,9 +25,21 @@ const PostsSchema = new mongoose.Schema({
     comments: { type: [CommentsSchema], default: [] }
 });
 
-PostsSchema.pre('find', function() {
-    this.populate('id'); // Populate the user field
+
+PostsSchema.pre('findOne', function() {
+    this.populate('id')
+        .populate({
+            path: 'comments.user',
+            select: 'name email imageUrl books likedBooks requests followedUsers deviceToken postCount followersCount followingCount booksCount'
+        });
 });
 
+PostsSchema.pre('findById', function() {
+    this.populate('id')
+        .populate({
+            path: 'comments.user',
+            select: 'name email imageUrl books likedBooks requests followedUsers deviceToken postCount followersCount followingCount booksCount'
+        });
+});
 const Post = mongoose.model('Post', PostsSchema);
 module.exports = Post;

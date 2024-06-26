@@ -213,16 +213,24 @@ exports.commentOnPost = async (req, res) => {
     try {
         const post = await Post.findById(req.params.postId);
         if (!post) return res.status(404).json({ message: 'Post not found' });
-
+        
+        const user = req.user;
         const comment = {
-            user: req.user._id,
+            user: user._id,  // Just store the user ID in the comment
             text: req.body.text,
-            date: new Date().toISOString()
+            date: new Date()
         };
 
-        post.comments.push(comment); // Assuming comments is an array in the post schema
+        post.comments.push(comment);
         await post.save();
-        res.status(201).json(post);
+
+        // Populate the comments with user details
+        const populatedPost = await Post.findById(post._id).populate({
+            path: 'comments.user',
+            select: 'name email imageUrl books likedBooks requests followedUsers deviceToken postCount followersCount followingCount booksCount' // Select the fields you need
+        }).exec();
+
+        res.status(201).json(populatedPost);
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

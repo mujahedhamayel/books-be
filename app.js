@@ -20,10 +20,10 @@ require('./models/User')
 require('./models/Book')
 
 const app = express();
-// Use the CORS middleware
+//  CORS middleware
 const corsOptions = {
-    origin: '*', // Allow all origins
-    optionsSuccessStatus: 200, // Some legacy browsers (IE11, various SmartTVs) choke on 204
+    origin: '*', 
+    optionsSuccessStatus: 200, 
   };
   
   app.use(cors(corsOptions));
@@ -36,6 +36,7 @@ const postRouter = require('./routes/postsRoute');
 const bookRouter = require('./routes/booksRoute');
 const searchRouter = require('./routes/searchRoute');
 const notificationRouter = require('./routes/notificationRoute');
+const discussionRoomRouter = require('./routes/discussionRoomRoute');
 
 
 // firebase notifications
@@ -48,6 +49,7 @@ app.use('/api/posts', postRouter);
 app.use('/api/books', bookRouter);
 app.use('/api/search', searchRouter);
 app.use('/api/notification', notificationRouter);
+app.use('/api/discussionRooms', discussionRoomRouter);
 
 
 
