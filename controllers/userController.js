@@ -13,7 +13,7 @@ exports.getUserProfile=(req, res)=> {
     connection.query(
       
       'SELECT * FROM user WHERE UserID=? ',[req.session],
-      //'SELECT Username, Email, FullName, Bio ,locations, Birthdate, Gender, Phone, SocialLinks FROM user WHERE UserID = 3 ',
+      
      (error, results) => {
         if (error) {
           return res.status(500).json({ message: 'Internal server error.' });

@@ -19,11 +19,8 @@ router.post('/create', async (req, res) => {
         });
         const savedRoom = await newRoom.save();
         
-        // Notify participants (implement your notification logic)
-        // For example, using Firebase Cloud Messaging
-        // participants.forEach(participantId => {
-        //     // Send notification to participant
-        // });
+        // TODO:Notify participants (implement your notification logic)
+        
 
         res.status(201).json(savedRoom);
     } catch (error) {
